@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title></title>
+  <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css" charset="utf-8" />
+  <script type="text/javascript" src="/static/jquery/dist/jquery.min.js"></script>
+  <script type="text/javascript" src="/static/yui/yui/yui-min.js"></script>
+  <script type="text/javascript" src="/static/codemirror/lib/codemirror.js"></script>
+  <script type="text/javascript" src="/static/codemirror/lib/codemirror.js"></script>
+  <script type="text/javascript" src="/static/codemirror/mode/sql/sql.js"></script>
+  <script type="text/javascript" src="/static/socket.io-client/socket.io.js"></script>
+  <style type="text/css">
+    .CodeMirror span, #path {
+      font-size: 18px;
+      font-family: "Ubuntu Mono";
+      padding-bottom: 0px;
+      margin-bottom: 0px;
+      height: 100%;
+    }
+    .CodeMirror {
+      line-height: 1 !important;
+    }
+    .CodeMirror-linenumber {
+      font-size: 18px;
+      font-family: "Ubuntu Mono";
+    }
+  </style>
+</head>
+<body>
+  <div id='path'><h3>Querylog Path: <span class="log"></span></h3></div>
+  <textarea id="editor"></textarea>
+  <script type="text/javascript">
+    var editor = document.getElementById('editor');
+    var myCodeMirror = CodeMirror.fromTextArea(editor, {
+      mode: "text/x-hive",
+      lineNumbers: true,
+      lineWrapping: true,
+    });
+    myCodeMirror.setSize('auto', 'auto');
+    function updateCodeMirror(data){
+      var cm = $('.CodeMirror')[0].CodeMirror;
+      var doc = cm.getDoc();
+      var pos = { // create a new object to avoid mutation of the original selection
+        line: doc.lastLine(),
+        ch: 0 // set the character position to the end of the line
+      }
+      doc.replaceRange(data, pos); // adds a new line
+      cm.setCursor(cm.lineCount(), 0);
+    }
+    var $urlParam = function (name) {
+      var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
+      return results[1] || 0;
+    }
+    YUI().use('node', function(Y) {
+      var path = $urlParam('path'),
+      socket= io.connect('http://127.0.0.1:3000');
+
+      $('#path .log').html(path);
+      socket.on('connect', function() {
+        socket.emit('path', path);
+      });
+
+      socket.on('message', function(data) {
+        console.log(typeof data);
+        console.log('Received message:', data);
+        if (data.receive) {
+          socket.emit('querylog', '');
+        }
+        if (data.log) {
+          updateCodeMirror(data.log);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
