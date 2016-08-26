@@ -4,9 +4,11 @@ var http    = require('http'),
     app     = express(),
     server  = http.createServer(app),
     io      = require('socket.io').listen(server),
-    path    = require('path');
+    path    = require('path')
+    config  = require('properties-reader');
 
 var spawn   = require('child_process').spawn;
+var prop    = config('app.properties');
 
 // server the browser dependencies
 app.use(express.static(path.join(__dirname, 'public')));
@@ -17,8 +19,8 @@ app.get('/files/:filename', function (req, res) {
   res.sendfile(__dirname + '/public/index.html');
 });
 
-server.listen(3000, function () {
-  console.log('Server running at http://0.0.0.0:3000/, connect with a browser to see tail output');
+server.listen(prop.get('server.port'), function () {
+  console.log('Server running at http://0.0.0.0:'+ prop.get('server.port') +'/, connect with a browser to see tail output');
 });
 
 // websockets

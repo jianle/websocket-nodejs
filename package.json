@@ -18,7 +18,8 @@
     "path": "*",
     "jquery": "*",
     "yui": "*",
-    "codemirror": "*"
+    "codemirror": "*",
+    "properties-reader": "*"
   },
   "keywords": [ "tail", "websocket", "express" ]
 }
